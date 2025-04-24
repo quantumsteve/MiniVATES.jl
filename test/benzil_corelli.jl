@@ -12,12 +12,13 @@ dur = @elapsed begin
     y = range(start = -13.16524, length = 604, stop = 13.16524)
     z = range(start = -0.5, length = 2, stop = 0.5)
 
-    extras_events_files = Vector{NTuple{2,AbstractString}}()
+    extras_events_files = Vector{NTuple{3,AbstractString}}()
     for file_num = benzil_event_nxs_min:benzil_event_nxs_max
         fNumStr = string(file_num)
         exFile = benzil_event_nxs_prefix * fNumStr * "_extra_params.hdf5"
         eventFile = benzil_event_nxs_prefix * fNumStr * "_BEFORE_MDNorm.nxs"
-        push!(extras_events_files, (exFile, eventFile))
+	fastEventFile = benzil_event_nxs_prefix * fNumStr * "_events.nxs"
+        push!(extras_events_files, (exFile, eventFile, fastEventFile))
     end
 
     # MiniVATES.verbose()

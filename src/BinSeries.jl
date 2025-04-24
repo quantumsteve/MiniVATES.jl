@@ -39,7 +39,8 @@ tmfmt(tm::AbstractFloat) = @sprintf("%3.6f s", tm)
     fastEventData = loadFastEventData(fastEventFile)
 
     set_m_W!(exData, m_W)
-    transforms2 = makeTransformsTranspose(exData)
+    #transforms2 = makeTransformsTranspose(exData)
+    transforms2 = makeTransforms(exData)
 
     if MiniVATES.be_verbose
         if rank == 0

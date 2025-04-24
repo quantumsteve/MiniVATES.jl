@@ -20,6 +20,7 @@ function binBoxes!(h::Hist3, events::FastEventData, transforms::AbstractArray)
                         vf = op * vi
                         startIdx = MVector{3,SizeType}(0, 0, 0)
                         singleBox = true
+                        inBounds = true
                         for j = 1:3
                             startIdx[j] = binindex1d(t.h, j, vf[j, 1])
                             endIdx = binindex1d(t.h, j, vf[j, 2])
@@ -27,14 +28,20 @@ function binBoxes!(h::Hist3, events::FastEventData, transforms::AbstractArray)
                                 singleBox = false
                                 break
                             end
+                            if (startIdx[j] < 1 && endIdx < 1) || (startIdx[j] > t.h.nbins[j] && endIdx > t.h.nbins[j])
+                                inBounds = false
+                                break
+			    end
                         end
-                        if singleBox
-                            binweights(t.h)[startIdx...] += t.boxSignal[i, 1]
-                        else
-                            startId = eid[i, 1] + 1
-                            stopId = startId + eid[i, 2] - 1
-                            localevents = @view t.events[startId:stopId, :]
-                            binMD!(t.h, localevents, op)
+			if inBounds
+                            if singleBox
+                                binweights(t.h)[startIdx...] += t.boxSignal[i, 1]
+                            else
+                                startId = eid[i, 1] + 1
+                                stopId = startId + eid[i, 2] - 1
+                                localevents = @view t.events[startId:stopId, :]
+                                binMD!(t.h, localevents, op)
+                            end
                         end
                     end
                 end

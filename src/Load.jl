@@ -23,6 +23,7 @@ end
 
 @inline function getSymmMatrices(ws::ExtrasWorkspace)
     symm = Vector{SquareMatrix3c}()
+    #push!(symm, SquareMatrix3c([1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0]))
     symmGroup = ws.file["symmetryOps"]
     for i = 1:length(symmGroup)
         push!(symm, transpose(read(symmGroup["op_" * string(i - 1)])))
@@ -44,6 +45,7 @@ mutable struct ExtrasData
     ExtrasData() = new()
 
     function ExtrasData(skip_dets, rotMatrix, symm, m_UB)
+        #m_W = SquareMatrix3c([1.0 1.0 0.0; 1.0 -1.0 0.0; 0.0 0.0 1.0])
         m_W = SquareMatrix3c([1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0])
         new(skip_dets, rotMatrix, symm, m_UB, m_W)
     end
@@ -329,6 +331,17 @@ end
     return ds
 end
 
+@inline function _getWeightsDataset(ws::FastEventWorkspace)
+    ds = ws.file["MDEventWorkspace"]["event_data"]["weights"]
+    dims, _ = HDF5.get_extent_dims(ds)
+    @assert length(dims) == 1
+    return ds
+end
+
+@inline function getWeights(ws::FastEventWorkspace)
+    return adapt_structure(JACCArray, read(_getWeightsDataset(ws)))
+end
+
 @inline function _getBoxTypeDataset(ws::FastEventWorkspace)
     ds = ws.file["MDEventWorkspace"]["box_structure"]["box_type"]
     dims, _ = HDF5.get_extent_dims(ds)
@@ -422,6 +435,7 @@ end
 mutable struct FastEventData
     protonCharge::ScalarType
     events::AbstractArray
+    weights::Array1c
     boxType::Array1{UInt8}
     extents::AbstractArray
     signal::Array1r
@@ -436,11 +450,13 @@ end
 
 @inline function updateEvents!(data::FastEventData, ws::FastEventWorkspace)
     unsafe_free!(parent(data.events))
+    unsafe_free!(parent(data.weights))
     unsafe_free!(parent(data.boxType))
     unsafe_free!(parent(data.extents))
     unsafe_free!(parent(data.signal))
     unsafe_free!(parent(data.eventIndex))
     data.events = getEvents(ws)
+    data.weights = getWeights(ws)
     data.boxType = getBoxType(ws)
     data.extents = getBoxExtents(ws)
     data.signal = getBoxSignal(ws)
@@ -505,6 +521,7 @@ function loadFastEventData(event_nxs_file::AbstractString)
     let ws = FastEventWorkspace(event_nxs_file)
         protonCharge = getProtonCharge(ws)
         events = getEvents(ws)
+	weights = getWeights(ws)
 	boxType = getBoxType(ws)
 	boxExtents = getBoxExtents(ws)
 	boxSignal = getBoxSignal(ws)
@@ -512,6 +529,7 @@ function loadFastEventData(event_nxs_file::AbstractString)
         return FastEventData(
             protonCharge,
             events,
+	    weights,
 	    boxType,
 	    boxExtents,
 	    boxSignal,

@@ -1,25 +1,18 @@
 import Adapt
 
-function binEvents!(h::Hist3, events::AbstractArray, transforms::AbstractArray)
+function binEvents!(h::Hist3, events::AbstractArray, weights::AbstractArray, transforms::Array1{SquareMatrix3c})
     JACC.parallel_for(
         size(events, 1),
         (i, t) -> begin
-            transforms_shared = JACC.shared(t.transforms)
             @inbounds begin
-		for n in 1:t.row_size
-                    idx = (n-1)*9
-                    v = StaticArrays.MVector{3,CoordType}(0, 0, 0)
-		    for j in 1:3
-                        for k in 1:3
-			    v[k] += t.events[i, j] * transforms_shared[idx + k]
-                        end
-			idx += 3
-                    end
-                    atomic_push!(t.h, v[1], v[2], v[3], 1.)
+                for n in 1:t.t_length
+                    op = t.transforms[n]
+                    v = op * C3[t.events[i, 1], t.events[i, 2], t.events[i, 3]]
+                    atomic_push!(t.h, v[1], v[2], v[3], t.weights[i])
                 end
             end
         end,
-        (h , events, transforms, row_size = size(transforms, 2)),
+        (h, events, transforms, weights, t_length = length(transforms)),
     )
 end
 

@@ -45,11 +45,11 @@ end
     h = MiniVATES.Hist3(x, y, z)
     hf = MiniVATES.Hist3(x, y, z)
 
-    @time MiniVATES.binEvents!(h, fastEventData.events, transforms2b)
+    @time MiniVATES.binEvents!(h, fastEventData.events, fastEventData.weights, transforms2b)
     @time MiniVATES.binBoxes!(hf, fastEventData, transforms2)
     MiniVATES.reset!(h)
     MiniVATES.reset!(hf)
-    @time MiniVATES.binEvents!(h, fastEventData.events, transforms2b)
+    @time MiniVATES.binEvents!(h, fastEventData.events, fastEventData.weights, transforms2b)
     @time MiniVATES.binBoxes!(hf, fastEventData, transforms2)
 
     @test binweights(h) == binweights(hf)

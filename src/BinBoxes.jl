@@ -8,7 +8,6 @@ function binMD!(h::Hist3, events::AbstractArray, weights::AbstractArray, op)
     end
 end
 
-#using CUDA
 function binBoxes!(h::Hist3, events::FastEventData, transforms::AbstractArray)
     JACC.parallel_for(
         length(events.boxType),
@@ -16,14 +15,14 @@ function binBoxes!(h::Hist3, events::FastEventData, transforms::AbstractArray)
             @inbounds begin
                 eid = t.eventIndex
                 if t.boxType[i] == 1 && eid[i, 2] != 0
-                    vi = transpose(SMatrix{8,3,CoordType}([events.extents[i, 1] events.extents[i, 3] events.extents[i, 5];
-                                                           events.extents[i, 1] events.extents[i, 3] events.extents[i, 6];
-                                                           events.extents[i, 1] events.extents[i, 4] events.extents[i, 5];
-                                                           events.extents[i, 1] events.extents[i, 4] events.extents[i, 6];
-                                                           events.extents[i, 2] events.extents[i, 3] events.extents[i, 5];
-                                                           events.extents[i, 2] events.extents[i, 3] events.extents[i, 6];
-                                                           events.extents[i, 2] events.extents[i, 4] events.extents[i, 5];
-                                                           events.extents[i, 2] events.extents[i, 4] events.extents[i, 6]]))
+                    vi = SMatrix{3,8,CoordType}(t.extents[i, 1], t.extents[i, 3], t.extents[i, 5],
+                                                t.extents[i, 1], t.extents[i, 3], t.extents[i, 6],
+                                                t.extents[i, 1], t.extents[i, 4], t.extents[i, 5],
+                                                t.extents[i, 1], t.extents[i, 4], t.extents[i, 6],
+                                                t.extents[i, 2], t.extents[i, 3], t.extents[i, 5],
+                                                t.extents[i, 2], t.extents[i, 3], t.extents[i, 6],
+                                                t.extents[i, 2], t.extents[i, 4], t.extents[i, 5],
+                                                t.extents[i, 2], t.extents[i, 4], t.extents[i, 6])
                     for op in t.transforms
                         vf = op * vi
                         startIdx = MVector{3,SizeType}(0, 0, 0)

@@ -213,9 +213,9 @@ end
     dims = size(readDataY)
     @assert (length(dims) == 2 || length(dims) == 1)
     if length(dims) == 2
-        retData = readDataY[:, 1]
-    else
         retData = readDataY
+    else
+	retData = reshape(readDataY,(dims[1],1))
     end
     return adapt_structure(JACCArray, retData)
 end
@@ -266,7 +266,7 @@ end
 
 struct FluxData
     integrFlux_x::AbstractRange{ScalarType}
-    integrFlux_y::Array1{ScalarType}
+    integrFlux_y::Array2{ScalarType}
     # fluxDetToIdx::Dict{Int32,SizeType}
     fluxDetToIdx::Array1{SizeType}
     ndets::SizeType

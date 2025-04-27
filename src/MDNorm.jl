@@ -615,9 +615,6 @@ detector/spectru
                         return 0
                     end
                     wsIdx = t.fluxDetToIdx[detID]
-                    if wsIdx != 1
-                        return 0
-                    end
 
                     return countIntersections(
                         t.signal,
@@ -672,9 +669,6 @@ detector/spectru
                         return nothing
                     end
                     wsIdx = t.fluxDetToIdx[detID]
-                    if wsIdx != 1
-                        return nothing
-                    end
 
                     intersections = row(t.intersections, i)
                     # sortedIntersections = calculateIntersections!(
@@ -698,7 +692,7 @@ detector/spectru
                         intersections,
                         # sortedIntersections,
                         t.integrFlux_x,
-                        t.integrFlux_y,
+                        view(t.integrFlux_y,:,wsIdx),
                         yValues,
                     )
 
